@@ -1,0 +1,16 @@
+brokentraj.csv
+Processed/
+sinD/
+misc/
+Other/
+# Add new files to the .gitignore file on main
+*.pt
+*.pth
+*.pkl
+*.log
+*.json
+
+Notes.md
+data/ModifiedData.csv
+test.py
+test_all.py

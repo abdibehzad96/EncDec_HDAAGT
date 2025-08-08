@@ -1,0 +1,4 @@
+
+Epoch [10/250], Loss: 1.13, ADE: 30.093, FDE: 46.60
+Epoch [11/250], Loss: 1.11, ADE: 28.816, FDE: 44.98
+Epoch [12/250], Loss: 1.10, ADE: 27.724, FDE: 43.43
