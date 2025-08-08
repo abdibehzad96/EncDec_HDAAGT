@@ -110,12 +110,12 @@ class TemporalConv(nn.Module):
         c1 = sl//2 +1
         c2 = sl//3 +1
 
-        self.conv1 = nn.Conv1d(sl+2,  sl+2, 7, 2, 3)
-        self.conv2 = nn.Conv1d(c1,  sl+2, 7, 2, 3)
-        self.conv3 = nn.Conv1d(c2,  sl+2, 7, 2, 3)
-        self.out = nn.Linear(hidden_size//2, hidden_size//2)
+        self.conv1 = nn.Conv1d(sl+2,  sl+2, 3, 1, 1, bias=False)
+        self.conv2 = nn.Conv1d(c1,  sl+2, 3, 1, 1, bias=False)
+        self.conv3 = nn.Conv1d(c2,  sl+2, 3, 1, 1, bias=False)
+        self.out = nn.Linear(hidden_size, hidden_size)
         self.LN = nn.LayerNorm(hidden_size)
-        self.Rezero = nn.Parameter(torch.zeros(hidden_size//2))
+        self.Rezero = nn.Parameter(torch.zeros(hidden_size))
         self.dropout = nn.Dropout(0.15)
         
     def forward(self, h):
@@ -123,7 +123,7 @@ class TemporalConv(nn.Module):
         x1 = F.relu(self.conv2(h[:,1::2]))
         x2 = F.relu(self.conv3(h[:,1::3]))
         x = self.dropout(x0 + x1 + x2)
-        x = self.out(x)*self.Rezero + x
+        x = F.leaky_relu(self.out(x))*self.Rezero + x
         return x
     
 def positional_encoding(x, d_model):
@@ -146,7 +146,7 @@ def positional_encoding(x, d_model):
         result[:, 1::2] = torch.cos(pos / (10_000 ** (dim / d_model)))
         return result.to(x.device)
 
-def target_mask(trgt, SL, num_head = 0, device="cuda:3"):
+def target_mask(trgt, num_head = 0, device="cuda:3"):
     B, T, _= trgt.size()
     mask = torch.triu(torch.ones(T,T, device=trgt.device, dtype=torch.bool), diagonal=1).unsqueeze(0).repeat(B*num_head,1,1) # Upper triangular matrix
     return mask
@@ -163,7 +163,7 @@ def create_src_mask(src): # src => [B, SL, Nnodes, Features]
     mask = src[:,:,:, 1] == 0 # True will be ignored
     return mask.permute(0,2,1).reshape(-1, src.size(1)) # out => [B* Nnodes, SL]
 
-def attach_sos_eos(src, sos, eos): # src => [B, SL0, Nnodes, Features]
+def attach_sos_eos(src, sos, eos, SL, F): # src => [B, SL0, Nnodes, Features]
     if sos is not None:
         return torch.cat((sos.repeat(src.size(0),1,1,1), src, eos.repeat(src.size(0),1,1,1)), dim=1) # out => [B, SL0+2, Nnodes, Features]
     else:

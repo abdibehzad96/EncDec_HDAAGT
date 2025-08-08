@@ -12,6 +12,7 @@ import argparse
 from utilz.utils import *
 from train_test import *
 from models.HDAAGT import *
+from models.loss import *
 
 if __name__ == '__main__':
     # If the model is run through terminal

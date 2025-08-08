@@ -17,7 +17,7 @@ class Positional_Encoding_Layer(nn.Module):
             self.Postional_embeddings.append(nn.Embedding(pos_embedding_dict_size[i], pos_embedding_dim[i], padding_idx=0))
 
         # Temporal Convolution and Positional Attention layers
-        # self.TemporalConv = TemporalConv(hidden_size, sl)
+        self.TemporalConv = TemporalConv(hidden_size, sl)
         self.Position_Att = nn.MultiheadAttention(embed_dim= hidden_size, num_heads=num_att_heads, batch_first=True)
         self.Pos_FF = FeedForwardNetwork(d_model= hidden_size, out_dim=hidden_size)
         self.Position_Rezero = nn.Parameter(torch.zeros(hidden_size))
@@ -40,13 +40,14 @@ class Positional_Encoding_Layer(nn.Module):
         Spatial_embd = self.DAAG(Temporal_embd, adj) 
         # Pos_embd = Pos_embd.permute(0,2,1,3).reshape(B*Nnodes, SL, 2*self.hidden_size)
 
-        # Leaky_Residual 
-        # Leaky_residual = self.TemporalConv(Temporal_embd)
+        # Leaky_Residual
         # Pos_embd= torch.cat((Pos_embd,Leaky_residual), dim=-1)
 
         # Positional Encoding + Attention
         Temporal_embd = Temporal_embd.permute(0,2,1,3).reshape(B*Nnodes, SL, self.hidden_size)
         Spatial_embd = Spatial_embd.permute(0,2,1,3).reshape(B*Nnodes, SL, self.hidden_size)
+        Temporal_embd = Temporal_embd + self.TemporalConv(Temporal_embd)
+        
         # Temporal_embd = Temporal_embd + positional_encoding(Temporal_embd, self.hidden_size)
         Temporal_embd = Temporal_embd + self.position_embedding(torch.arange(0, SL, device=Scene.device)).unsqueeze(0)
         Temporal_embd_att = self.Position_Att(Temporal_embd , Temporal_embd , Temporal_embd, need_weights=False, key_padding_mask = Scene_mask)[0] #key_padding_mask = src_mask
@@ -82,30 +83,28 @@ class Encoder_DAAG(nn.Module):
         self.Positional_Encoding_Layer = Positional_Encoding_Layer(hidden_size = self.hidden_size, num_att_heads = num_heads, 
                                                                    xy_indx = self.xy_indx, pos_embedding_dim = config['pos_embedding_dim'],
                                                                    pos_embedding_dict_size = config['pos_embedding_dict_size'], nnodes = config['Nnodes'], sl = config['sl']//config['dwn_smple'])
-        # self.Mixed_Att_Layer = Mixed_Attention_Layer(hidden_size = self.hidden_size, num_att_heads = num_heads)
+        self.Mixed_Att_Layer = Mixed_Attention_Layer(hidden_size = self.hidden_size, num_att_heads = num_heads)
 
     def forward(self, Scene, Scene_mask, Adj_mat):
         Temporal_embd, Spatial_embd, _ = self.Positional_Encoding_Layer(Scene, Scene_mask, Adj_mat)
         # Traffic_embd = self.Traffic_Encoding_Layer(Scene, Scene_mask, Leaky_Res)
-        # Temporal_embd = self.Mixed_Att_Layer(Temporal_embd, Spatial_embd, Scene_mask)
-        return Spatial_embd
+        Temporal_embd = self.Mixed_Att_Layer(Temporal_embd, Spatial_embd, Scene_mask)
+        return Temporal_embd
 
 
 class Projection(nn.Module):
-    def __init__(self, hidden_size, output_size, output_dict_size, Nnodes):
+    def __init__(self, hidden_size, output_size, output_dict_size):
         super(Projection, self).__init__()
         self.output_dict_size = output_dict_size
-        self.Nnodes = Nnodes
-        self.LN = nn.LayerNorm(hidden_size)
+        # self.LN = nn.LayerNorm(hidden_size)
         self.linear2 = nn.Linear(hidden_size, output_size*output_dict_size)
         self.output_size = output_size
         
-
     def forward(self, x):
-        B, SL, _ = x.size()
-        x = self.LN(x)
-        x = self.linear2(x).reshape(-1, 1,self.output_size, self.output_dict_size)# [B*Nnodes,1, output_size, output_dict_size]
-        return x
+        BN, SL, _ = x.size()
+        # x = self.LN(x)
+        x = self.linear2(x)
+        return x.reshape(BN, SL, self.output_size, self.output_dict_size)
 
 
 class HDAAGT(nn.Module):
@@ -118,21 +117,15 @@ class HDAAGT(nn.Module):
         self.future_len = config['future']// config['dwn_smple']
         self.encoder = Encoder_DAAG(config)
         self.decoder = Decoder(self.hidden_size,config['num_heads'], config['pos_embedding_dim'], config['pos_embedding_dict_size'], config['xy_indx'], config['dropout'])
-        self.proj = Projection(self.hidden_size, output_size, output_dict_size= config['output_dict_size'], Nnodes= Nnodes)
+        self.proj = Projection(self.hidden_size, output_size, output_dict_size= config['output_dict_size'])
     def forward(self, scene: torch.Tensor, src_mask, adj_mat: torch.Tensor, target):
-        trg = target[:,:1].permute(0,2,1,3).reshape(-1,1,2)  # Remove the eos token for the input to the decoder
-        output = []
-
+        F = target.size(1)
+        trg = target.permute(0,2,1,3).reshape(-1,F,2)  # Remove the eos token for the input to the decoder
+        trg_mask = target_mask(trgt=trg, num_head=self.num_heads, device=scene.device)
         enc_out = self.encoder(scene, src_mask, adj_mat)
-        for _ in range(self.future_len+1):
-            trg_mask = target_mask(trgt=trg, SL=scene.size(1),num_head=self.num_heads, device=scene.device)
-            dec_out = self.decoder(trg, enc_out, trg_mask, src_mask)
-            proj = self.proj(dec_out[:,-1:]) #/20 # Temperature for 3s, the 20 is good
-            top1 = proj.argmax(-1)  # [B, SL, Nnodes, output_size]
-            trg = torch.cat((trg, top1), dim=1)
-            output.append(proj)
-        output = torch.cat(output, dim=1)  # [B, SL, N
-        return output
+        dec_out = self.decoder(trg, enc_out, trg_mask, src_mask)
+        proj = self.proj(dec_out)
+        return proj
 
 
 class DecoderLayer(nn.Module):
@@ -214,27 +207,6 @@ class Decoder(nn.Module):
         # pass to LM head
         # output = self.linear(trg)
         return output
-
-
-def greedy_decode(model, src, src_mask, max_len, start_symbol, device):
-    model.eval()
-    src = model.pos_enc(model.src_embed(src))
-    for layer in model.encoder_layers:
-        src = layer(src, src_mask)
-
-    tgt_tokens = torch.full((src.size(0), 1), start_symbol, dtype=torch.long, device=device)  # <sos>
-
-    for _ in range(max_len):
-        tgt_emb = model.pos_enc(model.tgt_embed(tgt_tokens))
-        tgt_out = tgt_emb
-        for layer in model.decoder_layers:
-            tgt_out = layer(tgt_out, src)
-
-        logits = model.output_proj(tgt_out)[:, -1, :]  # last token's logits
-        next_token = torch.argmax(logits, dim=-1).unsqueeze(1)
-        tgt_tokens = torch.cat([tgt_tokens, next_token], dim=1)
-
-    return tgt_tokens
 
 
 if __name__ == "__main__":

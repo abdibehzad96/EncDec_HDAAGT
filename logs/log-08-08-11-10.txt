@@ -1,0 +1,155 @@
+
+Total  # of GPUs 4
+Using cuda:3 device
+ Model description: No fisheye parameters + Temperature + 4s length
+Starting at:  11-10-11
+Loading data ...
+Train size: 14100, Test size: 260, Validation size: 0
+Creating model from scratch
+The number of learnable parameter is 2172892 !
+Total  # of GPUs 4
+Using cuda:3 device
+ Model description: No fisheye parameters + Temperature + 4s length
+Starting at:  11-10-41
+Loading data ...
+Train size: 14100, Test size: 260, Validation size: 0
+Creating model from scratch
+The number of learnable parameter is 2172892 !
+Total  # of GPUs 4
+Using cuda:3 device
+ Model description: No fisheye parameters + Temperature + 4s length
+Starting at:  11-10-50
+Loading data ...
+Train size: 14100, Test size: 260, Validation size: 0
+Creating model from scratch
+The number of learnable parameter is 2172892 !
+Epoch [1/250], Loss: 2.15, ADE: 114.247, FDE: 122.04
+Epoch [2/250], Loss: 1.54, ADE: 59.114, FDE: 74.90
+Epoch [3/250], Loss: 1.36, ADE: 46.027, FDE: 63.20
+Epoch [4/250], Loss: 1.27, ADE: 40.244, FDE: 57.49
+Starting testing phase
+ADE is : 44.405 px 
+ FDE is: 60.673 px 
+ Inference time: 2733.769 ms
+During Training, Test ADE: 44.40, FDE: 60.67
+Epoch [5/250], Loss: 1.22, ADE: 36.471, FDE: 53.60
+Epoch [6/250], Loss: 1.19, ADE: 33.743, FDE: 49.91
+Epoch [7/250], Loss: 1.15, ADE: 31.265, FDE: 47.13
+Epoch [8/250], Loss: 1.12, ADE: 28.949, FDE: 44.56
+Epoch [9/250], Loss: 1.10, ADE: 27.195, FDE: 42.43
+Starting testing phase
+ADE is : 33.638 px 
+ FDE is: 49.868 px 
+ Inference time: 2674.715 ms
+During Training, Test ADE: 33.64, FDE: 49.87
+Epoch [10/250], Loss: 1.08, ADE: 25.654, FDE: 40.31
+Epoch [11/250], Loss: 1.06, ADE: 24.713, FDE: 38.99
+Epoch [12/250], Loss: 1.05, ADE: 23.829, FDE: 37.72
+Epoch [13/250], Loss: 1.02, ADE: 22.024, FDE: 35.12
+Epoch [14/250], Loss: 1.00, ADE: 21.070, FDE: 33.67
+Starting testing phase
+ADE is : 30.377 px 
+ FDE is: 48.262 px 
+ Inference time: 2672.321 ms
+During Training, Test ADE: 30.38, FDE: 48.26
+Epoch [15/250], Loss: 1.00, ADE: 20.563, FDE: 33.07
+Epoch [16/250], Loss: 0.99, ADE: 20.172, FDE: 32.39
+Epoch [17/250], Loss: 0.99, ADE: 19.837, FDE: 31.88
+Epoch [18/250], Loss: 0.98, ADE: 19.495, FDE: 31.44
+Epoch [19/250], Loss: 0.98, ADE: 19.155, FDE: 31.05
+Starting testing phase
+ADE is : 29.909 px 
+ FDE is: 48.110 px 
+ Inference time: 2676.882 ms
+During Training, Test ADE: 29.91, FDE: 48.11
+Epoch [20/250], Loss: 0.97, ADE: 18.901, FDE: 30.59
+Epoch [21/250], Loss: 0.97, ADE: 18.703, FDE: 30.35
+Epoch [22/250], Loss: 0.97, ADE: 18.398, FDE: 29.98
+Epoch [23/250], Loss: 0.96, ADE: 18.212, FDE: 29.66
+Epoch [24/250], Loss: 0.96, ADE: 17.982, FDE: 29.31
+Starting testing phase
+ADE is : 29.408 px 
+ FDE is: 47.791 px 
+ Inference time: 2674.267 ms
+During Training, Test ADE: 29.41, FDE: 47.79
+Epoch [25/250], Loss: 0.95, ADE: 17.806, FDE: 28.97
+Epoch [26/250], Loss: 0.95, ADE: 17.682, FDE: 28.87
+Epoch [27/250], Loss: 0.95, ADE: 17.558, FDE: 28.66
+Epoch [28/250], Loss: 0.95, ADE: 17.514, FDE: 28.62
+Epoch [29/250], Loss: 0.95, ADE: 17.416, FDE: 28.48
+Starting testing phase
+ADE is : 27.419 px 
+ FDE is: 44.823 px 
+ Inference time: 2678.957 ms
+During Training, Test ADE: 27.42, FDE: 44.82
+Epoch [30/250], Loss: 0.95, ADE: 17.374, FDE: 28.44
+Epoch [31/250], Loss: 0.95, ADE: 17.275, FDE: 28.26
+Epoch [32/250], Loss: 0.95, ADE: 17.249, FDE: 28.26
+Epoch [33/250], Loss: 0.94, ADE: 17.187, FDE: 28.13
+Epoch [34/250], Loss: 0.94, ADE: 17.107, FDE: 27.98
+Starting testing phase
+ADE is : 27.040 px 
+ FDE is: 44.501 px 
+ Inference time: 2681.872 ms
+During Training, Test ADE: 27.04, FDE: 44.50
+Epoch [35/250], Loss: 0.94, ADE: 17.052, FDE: 27.95
+Epoch [36/250], Loss: 0.94, ADE: 17.035, FDE: 27.87
+Epoch [37/250], Loss: 0.94, ADE: 16.922, FDE: 27.66
+Epoch [38/250], Loss: 0.94, ADE: 16.840, FDE: 27.49
+Epoch [39/250], Loss: 0.94, ADE: 16.835, FDE: 27.58
+Starting testing phase
+ADE is : 26.606 px 
+ FDE is: 43.965 px 
+ Inference time: 2672.794 ms
+During Training, Test ADE: 26.61, FDE: 43.97
+Epoch [40/250], Loss: 0.94, ADE: 16.808, FDE: 27.52
+Epoch [41/250], Loss: 0.94, ADE: 16.807, FDE: 27.58
+Epoch [42/250], Loss: 0.94, ADE: 16.785, FDE: 27.49
+Epoch [43/250], Loss: 0.94, ADE: 16.785, FDE: 27.43
+Epoch [44/250], Loss: 0.94, ADE: 16.771, FDE: 27.53
+Starting testing phase
+ADE is : 26.593 px 
+ FDE is: 44.101 px 
+ Inference time: 2675.279 ms
+During Training, Test ADE: 26.59, FDE: 44.10
+Epoch [45/250], Loss: 0.94, ADE: 16.756, FDE: 27.44
+Epoch [46/250], Loss: 0.94, ADE: 16.762, FDE: 27.50
+Epoch [47/250], Loss: 0.94, ADE: 16.757, FDE: 27.49
+Epoch [48/250], Loss: 0.94, ADE: 16.736, FDE: 27.44
+Epoch [49/250], Loss: 0.94, ADE: 16.714, FDE: 27.30
+Starting testing phase
+ADE is : 26.579 px 
+ FDE is: 44.060 px 
+ Inference time: 2674.211 ms
+During Training, Test ADE: 26.58, FDE: 44.06
+Epoch [50/250], Loss: 0.94, ADE: 16.733, FDE: 27.25
+Epoch [51/250], Loss: 0.94, ADE: 16.687, FDE: 27.35
+Epoch [52/250], Loss: 0.94, ADE: 16.729, FDE: 27.45
+Epoch [53/250], Loss: 0.94, ADE: 16.672, FDE: 27.31
+Epoch [54/250], Loss: 0.94, ADE: 16.700, FDE: 27.31
+Starting testing phase
+ADE is : 26.477 px 
+ FDE is: 43.954 px 
+ Inference time: 2677.213 ms
+During Training, Test ADE: 26.48, FDE: 43.95
+Epoch [55/250], Loss: 0.94, ADE: 16.673, FDE: 27.29
+Epoch [56/250], Loss: 0.94, ADE: 16.651, FDE: 27.31
+Epoch [57/250], Loss: 0.94, ADE: 16.679, FDE: 27.31
+Epoch [58/250], Loss: 0.94, ADE: 16.663, FDE: 27.30
+Epoch [59/250], Loss: 0.94, ADE: 16.655, FDE: 27.32
+Starting testing phase
+ADE is : 26.461 px 
+ FDE is: 43.847 px 
+ Inference time: 2675.732 ms
+During Training, Test ADE: 26.46, FDE: 43.85
+Epoch [60/250], Loss: 0.94, ADE: 16.646, FDE: 27.29
+Epoch [61/250], Loss: 0.94, ADE: 16.709, FDE: 27.41
+Epoch [62/250], Loss: 0.94, ADE: 16.708, FDE: 27.29
+Epoch [63/250], Loss: 0.94, ADE: 16.689, FDE: 27.23
+Epoch [64/250], Loss: 0.94, ADE: 16.659, FDE: 27.31
+Starting testing phase
+ADE is : 26.455 px 
+ FDE is: 43.917 px 
+ Inference time: 2673.412 ms
+During Training, Test ADE: 26.46, FDE: 43.92
+Epoch [65/250], Loss: 0.94, ADE: 16.669, FDE: 27.28

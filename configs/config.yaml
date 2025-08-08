@@ -60,5 +60,5 @@ gamma: 0.2
 epochs: 250
 patience_limit: 50
 clip: 0.25
-batch_size: 64
+batch_size: 256
 device: 'cuda:3'

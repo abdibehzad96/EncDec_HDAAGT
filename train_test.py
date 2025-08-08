@@ -8,6 +8,7 @@ def train_model(model, optimizer, criterion, scheduler, train_loader, test_loade
     patience_limit = config['patience_limit']
     sos = config['sos']
     eos = config['eos']
+    out_dict_size = config['output_dict_size']
     future = config['future']// config['dwn_smple']
     train_loss, prev_average_loss, patience= [],  10000000.0, 0
     trainFDE, trainADE = [], []
@@ -18,13 +19,13 @@ def train_model(model, optimizer, criterion, scheduler, train_loader, test_loade
         for Scene, Target, Adj_Mat_Scene in train_loader: # Scene & Taget => [B, SL0, Nnodes, Features], Adj_Mat_Scene => [B, SL, Nnodes, Nnodes]
             optimizer.zero_grad()
             Scene, Scene_mask, Adj_Mat, Target = prep_model_input(Scene, Adj_Mat_Scene,Target, sos, eos, config)
-            outputs = model(Scene, Scene_mask, Adj_Mat, Target)
-            loss = criterion(outputs.reshape(-1, 1024), Target[:,1:].permute(0,2,1,3).reshape(-1).long())
+            outputs = model(Scene, Scene_mask, Adj_Mat, Target[:,:-1]) # Remove the eos token for the input to the decoder
+            loss = criterion(outputs.reshape(-1, out_dict_size), Target[:,1:].permute(0,2,1,3).reshape(-1).long())
             loss.backward()
             torch.nn.utils.clip_grad_norm_(model.parameters(), config['clip'])
             optimizer.step()
             with torch.no_grad():
-                _, ADE, FDE = Find_topk_selected_words(outputs[:,:-1].reshape(-1, config['Nnodes'], future, 2, config['output_dict_size']).permute(0,2,1,3,4), Target[:,1:-1]) # sos and eos are not included in the loss
+                _, ADE, FDE = Find_topk_selected_words(outputs[:,:-1].reshape(-1, config['Nnodes'], future, 2, out_dict_size).permute(0,2,1,3,4), Target[:,1:-1]) # sos and eos are not included in the loss
             epoch_losses.append(loss.item())
             epoch_ADE.append(ADE)
             epoch_FDE.append(FDE)
@@ -69,9 +70,8 @@ def test_model(model, test_loader, config):
         start_event.record()
         for Scene, Target, Adj_Mat_Scene in test_loader:
             Scene, Scene_mask, Adj_Mat, Target = prep_model_input(Scene, Adj_Mat_Scene,Target, sos, eos, config)
-            Pred_target = model(Scene, Scene_mask,Adj_Mat, Target)
-            # Target = Target[:,1:-1,:, config['xy_indx']]
-            Topk_Selected_words, ADE, FDE = Find_topk_selected_words(Pred_target[:,:-1].reshape(-1, config['Nnodes'], future, 2, config['output_dict_size']).permute(0,2,1,3,4), Target[:,1:-1])
+            Pred_target = greedy_search(model, Scene, Scene_mask, Adj_Mat, config, future)
+            ADE, FDE = Find_topk_selected_words(Pred_target[:,1:-1].reshape(-1, config['Nnodes'], future, 2).permute(0,2,1,3), Target[:,1:-1], True) # sos and eos are not included in the loss
             test_size += Scene.size(0)
             Avg_ADE += ADE
             Avg_FDE += FDE
@@ -81,14 +81,26 @@ def test_model(model, test_loader, config):
         Avg_ADE, Avg_FDE = Avg_ADE/len(test_loader), Avg_FDE/len(test_loader)
         log= f"ADE is : {Avg_ADE:.3f} px \n FDE is: {Avg_FDE:.3f} px \n Inference time: {1000*Avg_inference_time:.3f} ms"
         savelog(log, config['ct'])
-        return Topk_Selected_words, Avg_ADE, Avg_FDE
+        return Pred_target, Avg_ADE, Avg_FDE
     
 def prep_model_input(Scene, Adj_Mat_Scene,Target, sos, eos, config):
-    Scene = attach_sos_eos(Scene, sos, eos)
+    Scene = attach_sos_eos(Scene, sos, eos,Scene.shape[1],Target.shape[1]) # Scene => [B, SL0+2, Nnodes, Features]
     Adj_Mat = torch.cat((torch.ones_like(Adj_Mat_Scene[:,:1]), Adj_Mat_Scene, torch.ones_like(Adj_Mat_Scene[:,:1])), dim=1)
     Scene_mask = create_src_mask(Scene)
-    Target = attach_sos_eos(Target[:,:,:, config['xy_indx']],sos[:,config['xy_indx']], eos[:,config['xy_indx']])
-    # Target_mask = target_mask(trgt=Target, num_head=config['num_heads'], device=Scene.device)
-    return Scene, Scene_mask, Adj_Mat, Target#, Target_mask
+    Target = attach_sos_eos(Target[:,:,:, config['xy_indx']],sos[:,config['xy_indx']], eos[:,config['xy_indx']], Scene.shape[1],Target.shape[1])
+    return Scene, Scene_mask, Adj_Mat, Target
+
+def greedy_search(model, scene, scene_mask, adj_mat, config, max_len):
+    model.eval()
+    B, N = scene.size(0), scene.size(2)
+    pred_trgt = config['sos'][0,config['xy_indx']].repeat(B*N,1,1)
+    enc_out = model.encoder(scene, scene_mask, adj_mat)
+    for _ in range(max_len+1):  # +1 to include the last prediction
+        trg_mask = target_mask(pred_trgt, num_head=model.num_heads, device=scene.device)
+        dec_out = model.decoder(pred_trgt, enc_out, trg_mask, scene_mask)
+        proj = model.proj(dec_out)
+        top1 = proj.argmax(-1) # Get the index of the max value
+        pred_trgt = torch.cat((pred_trgt, top1[:,-1:]), dim=1)  # Append the last prediction to the target sequence
+    return pred_trgt
 if __name__ == "__main__":
     print("Yohoooo, Ran a Wrong Script!")
