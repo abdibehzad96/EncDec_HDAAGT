@@ -83,7 +83,8 @@ if __name__ == '__main__':
 
     model = HDAAGT(config).to(device) # Here we define our model
     
-    criterion = nn.CrossEntropyLoss()
+    # criterion = nn.CrossEntropyLoss()
+    criterion = dist_softmax(config)
     optimizer = optim.AdamW(model.parameters(), lr=config['learning_rate'])
     scheduler = StepLR(optimizer, step_size=config['schd_stepzise'], gamma=config['gamma'])
     if not config['Load_Model']:
@@ -104,5 +105,8 @@ if __name__ == '__main__':
         savelog(f"Training finished for {ct}!", ct)
 
     if config['Test']: # If not training, then test the model
-        Topk_Selected_words, ADE, FDE = test_model(model, test_loader, config)
+        ADE, FDE, Predictions = test_model(model, test_loader, config)
+        if config['Save_Predictions']:
+            savelog(f"Saving predictions to {config['Predictions_path']}", ct)
+            torch.save(Predictions, config['Predictions_path'])
         savelog(f"Average Displacement Error: {ADE}, Final Displacement Error: {FDE}", ct)

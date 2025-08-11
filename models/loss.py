@@ -1,11 +1,14 @@
-from torch.nn.functional import mse_loss, cross_entropy, softmin, softmax
+from torch.nn import CrossEntropyLoss, MSELoss
 import torch
 import torch.nn as nn
 class dist_softmax(nn.Module):
-    def __init__(self):
+    def __init__(self, config):
         super(dist_softmax, self).__init__()
+        self.entropyloss = CrossEntropyLoss()
+        self.mseloss = MSELoss(reduction='mean')
+        self.register_buffer('counter', torch.arange(config['output_dict_size']).float().to(config['device']))
 
-    def forward(self, pred, target):
+    def forward(self, pred, target, alpha=0.1, beta=1.0):
         """
         Forward pass for the distance softmax loss.
         
@@ -16,24 +19,14 @@ class dist_softmax(nn.Module):
         Returns:
             torch.Tensor: Computed loss value.
         """
-        B, M, _ = pred.size()  # B: batch size, M: sequence length, _: number of branches (5 in this case)
-        top_probs = pred[..., 0]  # shape: [B, S, 5]
-        # Step 2: Find index of max probability across 5 branches
-        max_idx = top_probs.argmax(dim=1) 
-        B_idx = torch.arange(B)
-
-        selected = pred[B_idx, max_idx, 1:]  # shape: [B, S, 1025]
-
-        probs = softmax(pred[:,:,1:], dim=-1)
-        topk_vals = torch.argmax(probs, dim=-1)  # Get the indices of the topk values
-        distance = torch.abs(topk_vals.squeeze(-1) - target.unsqueeze(1))  # [B, Nnodes, output_size]
-        weights = softmin(distance / 1, dim=-1)
-
-
-
-        entropyloss0 = cross_entropy(pred[:,:,0], weights, reduction='mean')
-        entropyloss1 = cross_entropy(selected, target, reduction='mean')
-
-
-        return entropyloss0 + entropyloss1 # Combine the two losses with a weight factor
+        
+        # Calculate the entropy loss
+        entropyloss0 = self.entropyloss(pred, target).float()  # Cross-entropy loss between predicted and target distributions
+        # Calculate the mean squared error loss
+        pred_xy = nn.functional.softmax(pred, dim=-1)
+        bins = torch.arange(pred_xy.size(-1), device=pred_xy.device).float()
+        pred_xy = torch.sum(pred_xy * bins, dim=-1)  # Weighted average
+        distance_loss = (pred_xy-target.float()).abs().mean()  # Mean squared error between predicted and target distances
+        # Mean distance between predicted and target distances
+        return entropyloss0 + alpha * distance_loss  # Combine the two losses with a weight factor
 

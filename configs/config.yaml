@@ -7,11 +7,13 @@ verbal: false # If true, it will print the configs parameters
 detection_path: 'data/Fisheye-MARC.csv'
 Zoneconf_path: 'configs/ZoneConf.yaml'
 generate_data: false #  Add class by loading the CSV file
-Load_Model: false # It's for creating model from scratch
-Load_Model_Path: 'Pickled/best_trained_model05-22-09-03.pth' # The path of the model to be loaded
-Train: true # It's for training the model with the prepared data
+Load_Model: true # It's for creating model from scratch
+Load_Model_Path: 'Pickled/best_trained_model08-08-16-31.pth' # The path of the model to be loaded
+Predictions_path: 'Pickled/Predictions08-08-16-31.pth' # The path to save the predictions
+Train: false # It's for training the model with the prepared data
 Test: true # It's for testing the model with the prepared data
 Test_during_training: true # It's for testing the model during training
+Save_Predictions: true # If true, it will save the predictions in a CSV file
 
 
 # Model Architecture parameters
@@ -56,9 +58,9 @@ noise_ratio: 0.5 # probability of the noise
 # Training parameters
 learning_rate: !!float 8e-04
 schd_stepzise: 12
-gamma: 0.2
+gamma: 0.25
 epochs: 250
 patience_limit: 50
-clip: 0.25
-batch_size: 256
+clip: 0.5
+batch_size: 64
 device: 'cuda:3'

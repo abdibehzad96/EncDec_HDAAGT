@@ -2,8 +2,8 @@
 Total  # of GPUs 4
 Using cuda:3 device
  Model description: No fisheye parameters + Temperature + 4s length
-Starting at:  11-07-18
+Starting at:  16-12-46
 Loading data ...
 Train size: 14100, Test size: 260, Validation size: 0
 Creating model from scratch
-The number of learnable parameter is 2136092 !
+The number of learnable parameter is 2172408 !

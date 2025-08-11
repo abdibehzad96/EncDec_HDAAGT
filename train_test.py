@@ -49,7 +49,7 @@ def train_model(model, optimizer, criterion, scheduler, train_loader, test_loade
                 break
         patience += 1
         if config['Test_during_training'] and epoch % 5 == 3:
-            _, ADE, FDE = test_model(model, test_loader, config)
+            ADE, FDE, _ = test_model(model, test_loader, config)
             savelog(f"During Training, Test ADE: {ADE :.2f}, FDE: {FDE :.2f}", config['ct'])
             model.train()
             # print(f"Allocated memory: {torch.cuda.memory_allocated() / 1024**2:.5f} MB")
@@ -64,6 +64,7 @@ def test_model(model, test_loader, config):
     savelog("Starting testing phase", config['ct'])
     model.eval()
     Avg_ADE, Avg_FDE, test_size = 0, 0, 0
+    saved_buffer = torch.empty((0, future, config['Nnodes'], 2), device=config['device'])
     with torch.no_grad():
         start_event = torch.cuda.Event(enable_timing=True)
         end_event = torch.cuda.Event(enable_timing=True)
@@ -75,13 +76,15 @@ def test_model(model, test_loader, config):
             test_size += Scene.size(0)
             Avg_ADE += ADE
             Avg_FDE += FDE
+            if config['Save_Predictions']:
+                saved_buffer = torch.cat((saved_buffer, Pred_target[:,1:-1].reshape(-1, config['Nnodes'], future, 2).permute(0,2,1,3)), dim=0)
         end_event.record()
         torch.cuda.synchronize()
         Avg_inference_time = start_event.elapsed_time(end_event)/test_size
         Avg_ADE, Avg_FDE = Avg_ADE/len(test_loader), Avg_FDE/len(test_loader)
         log= f"ADE is : {Avg_ADE:.3f} px \n FDE is: {Avg_FDE:.3f} px \n Inference time: {1000*Avg_inference_time:.3f} ms"
         savelog(log, config['ct'])
-        return Pred_target, Avg_ADE, Avg_FDE
+        return Avg_ADE, Avg_FDE, saved_buffer
     
 def prep_model_input(Scene, Adj_Mat_Scene,Target, sos, eos, config):
     Scene = attach_sos_eos(Scene, sos, eos,Scene.shape[1],Target.shape[1]) # Scene => [B, SL0+2, Nnodes, Features]
@@ -99,7 +102,7 @@ def greedy_search(model, scene, scene_mask, adj_mat, config, max_len):
         trg_mask = target_mask(pred_trgt, num_head=model.num_heads, device=scene.device)
         dec_out = model.decoder(pred_trgt, enc_out, trg_mask, scene_mask)
         proj = model.proj(dec_out)
-        top1 = proj.argmax(-1) # Get the index of the max value
+        top1 = proj.softmax(-1).argmax(-1) # Get the index of the max value
         pred_trgt = torch.cat((pred_trgt, top1[:,-1:]), dim=1)  # Append the last prediction to the target sequence
     return pred_trgt
 if __name__ == "__main__":

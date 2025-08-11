@@ -46,7 +46,7 @@ class Positional_Encoding_Layer(nn.Module):
         # Positional Encoding + Attention
         Temporal_embd = Temporal_embd.permute(0,2,1,3).reshape(B*Nnodes, SL, self.hidden_size)
         Spatial_embd = Spatial_embd.permute(0,2,1,3).reshape(B*Nnodes, SL, self.hidden_size)
-        Temporal_embd = Temporal_embd + self.TemporalConv(Temporal_embd)
+        # Temporal_embd = Temporal_embd + self.TemporalConv(Temporal_embd)
         
         # Temporal_embd = Temporal_embd + positional_encoding(Temporal_embd, self.hidden_size)
         Temporal_embd = Temporal_embd + self.position_embedding(torch.arange(0, SL, device=Scene.device)).unsqueeze(0)

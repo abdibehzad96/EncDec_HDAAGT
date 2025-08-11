@@ -1,0 +1,9 @@
+
+Total  # of GPUs 4
+Using cuda:3 device
+ Model description: No fisheye parameters + Temperature + 4s length
+Starting at:  08-51-47
+Loading data ...
+Train size: 14100, Test size: 260, Validation size: 0
+Loading model from the checkpoint
+Starting testing phase

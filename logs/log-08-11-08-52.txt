@@ -1,0 +1,14 @@
+
+Total  # of GPUs 4
+Using cuda:3 device
+ Model description: No fisheye parameters + Temperature + 4s length
+Starting at:  08-52-44
+Loading data ...
+Train size: 14100, Test size: 260, Validation size: 0
+Loading model from the checkpoint
+Starting testing phase
+ADE is : 20.303 px 
+ FDE is: 31.896 px 
+ Inference time: 4404.701 ms
+Saving predictions to Pickled/Predictions08-08-16-31.pth
+Average Displacement Error: 20.302738189697266, Final Displacement Error: 31.89570426940918
