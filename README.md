@@ -3,7 +3,7 @@
 
 # HDAAGT #
 <div style="text-align: justify;">
-Heterogeneous Decision-Aware Attention Graph Transformer for Scene-Centric Trajectory Predicton (HDAAGT): A non-autoregressive, encoder-only transformer model for vehicle trajectory prediction. HDAAGT integrates lane positioning, traffic light states, and vehicle kinematics, enabling a decision-aware graph attention mechanism that models agent-agent and agent-environment interactions. Decision-Aware Attention Graph(DAAG) network models the spatiotemporal influence of all neighboring road agents with and generates the decisions token for all road agents simultaneously.
+Heterogeneous Decision-Aware Attention Graph Transformer for Scene-Centric Trajectory Predicton (HDAAGT): An Autoregressive, encoder-decoder transformer model for vehicle trajectory prediction. HDAAGT integrates lane positioning, traffic light states, and vehicle kinematics, enabling a decision-aware graph attention mechanism that models agent-agent and agent-environment interactions. Decision-Aware Attention Graph(DAAG) network models the spatiotemporal influence of all neighboring road agents with and generates the decisions token for all road agents simultaneously. Check the Performance video here [data/prediction.mp4](prediction.mp4)
 </div>
 </br>
 
@@ -12,7 +12,7 @@ Heterogeneous Decision-Aware Attention Graph Transformer for Scene-Centric Traje
 ## Installation
 Clone this repository with the following command:
 ```
-git clone https://github.com/abdibehzad96/HDAAGT.git
+git clone https://github.com/abdibehzad96/EncDec_HDAAGT.git
 ```
 
 ## Environment Setup

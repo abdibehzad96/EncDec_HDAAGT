@@ -10,7 +10,7 @@ def train_model(model, optimizer, criterion, scheduler, train_loader, test_loade
     eos = config['eos']
     out_dict_size = config['output_dict_size']
     future = config['future']// config['dwn_smple']
-    train_loss, prev_average_loss, patience= [],  10000000.0, 0
+    train_loss, prev_average_loss,prev_test_ADE, patience= [],  10000000.0, 100000000.0, 0
     trainFDE, trainADE = [], []
     Best_Model = []
     for epoch in range(config['epochs']):
@@ -18,6 +18,7 @@ def train_model(model, optimizer, criterion, scheduler, train_loader, test_loade
         epoch_losses, epoch_ADE, epoch_FDE = [], [], []
         for Scene, Target, Adj_Mat_Scene in train_loader: # Scene & Taget => [B, SL0, Nnodes, Features], Adj_Mat_Scene => [B, SL, Nnodes, Nnodes]
             optimizer.zero_grad()
+            # Let's add some noise to the Scene
             Scene, Scene_mask, Adj_Mat, Target = prep_model_input(Scene, Adj_Mat_Scene,Target, sos, eos, config)
             outputs = model(Scene, Scene_mask, Adj_Mat, Target[:,:-1]) # Remove the eos token for the input to the decoder
             loss = criterion(outputs.reshape(-1, out_dict_size), Target[:,1:].permute(0,2,1,3).reshape(-1).long())
@@ -43,15 +44,19 @@ def train_model(model, optimizer, criterion, scheduler, train_loader, test_loade
         if train_loss[-1] < prev_average_loss: # checkpoint update
             prev_average_loss = train_loss[-1]  # Update previous average loss
             patience = 0
-            Best_Model = model
+            # Best_Model = model
         elif patience > patience_limit:
                 savelog(f'early stopping, Patience lvl1 , lvl2 {patience}', config['ct'])
                 break
         patience += 1
-        if config['Test_during_training'] and epoch % 5 == 3:
+        if config['Test_during_training'] and epoch % 2 == 1:
             ADE, FDE, _ = test_model(model, test_loader, config)
             savelog(f"During Training, Test ADE: {ADE :.2f}, FDE: {FDE :.2f}", config['ct'])
             model.train()
+            if ADE < prev_test_ADE: # checkpoint update
+                prev_test_ADE = ADE  # Update previous average loss
+                patience = 0
+                Best_Model = model
             # print(f"Allocated memory: {torch.cuda.memory_allocated() / 1024**2:.5f} MB")
             # print(f"Reserved memory:  {torch.cuda.memory_reserved() / 1024**2:.5f} MB")
     return Best_Model, train_loss, trainADE, trainFDE
@@ -70,7 +75,7 @@ def test_model(model, test_loader, config):
         end_event = torch.cuda.Event(enable_timing=True)
         start_event.record()
         for Scene, Target, Adj_Mat_Scene in test_loader:
-            Scene, Scene_mask, Adj_Mat, Target = prep_model_input(Scene, Adj_Mat_Scene,Target, sos, eos, config)
+            Scene, Scene_mask, Adj_Mat, Target = prep_model_input(Scene, Adj_Mat_Scene,Target, sos, eos, config, test=True)
             Pred_target = greedy_search(model, Scene, Scene_mask, Adj_Mat, config, future)
             ADE, FDE = Find_topk_selected_words(Pred_target[:,1:-1].reshape(-1, config['Nnodes'], future, 2).permute(0,2,1,3), Target[:,1:-1], True) # sos and eos are not included in the loss
             test_size += Scene.size(0)
@@ -86,7 +91,17 @@ def test_model(model, test_loader, config):
         savelog(log, config['ct'])
         return Avg_ADE, Avg_FDE, saved_buffer
     
-def prep_model_input(Scene, Adj_Mat_Scene,Target, sos, eos, config):
+def prep_model_input(Scene, Adj_Mat_Scene,Target, sos, eos, config, test=False):
+    if not test:
+        noise_mask = torch.randn_like(Scene[...,:2]) < config['noise_ratio']
+        mask = Scene[...,:2] != 0  # Mask to avoid noise on the zero values
+        noise_mask = noise_mask & mask
+        Scene[...,:2] = Scene[...,:2] + noise_mask * torch.randint(0, config['noise_amp'], Scene[...,:2].shape, device=Scene.device)
+        # Same for the Target
+        noise_mask = torch.randn_like(Target[...,:2]) < config['noise_ratio']
+        mask = Target[...,:2] != 0  # Mask to avoid noise on the zero values
+        noise_mask = noise_mask & mask
+        Target[...,:2] = Target[...,:2] + noise_mask * torch.randint(0, config['noise_amp'], Target[...,:2].shape, device=Target.device)
     Scene = attach_sos_eos(Scene, sos, eos,Scene.shape[1],Target.shape[1]) # Scene => [B, SL0+2, Nnodes, Features]
     Adj_Mat = torch.cat((torch.ones_like(Adj_Mat_Scene[:,:1]), Adj_Mat_Scene, torch.ones_like(Adj_Mat_Scene[:,:1])), dim=1)
     Scene_mask = create_src_mask(Scene)

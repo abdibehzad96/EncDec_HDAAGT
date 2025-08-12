@@ -1,0 +1,44 @@
+
+Total  # of GPUs 4
+Using cuda:3 device
+ Model description: No fisheye parameters + Temperature + 4s length
+Starting at:  11-13-14
+Loading CSV file ...
+Train size: 282, Test size: 31, Validation size: 1 
+Randomly splitting the data
+Train size: 31130, Test size: 310, Validation size: 0
+Creating model from scratch
+The number of learnable parameter is 11617496 !
+Epoch [1/250], Loss: 4.32, ADE: 42.245, FDE: 38.50
+Epoch [2/250], Loss: 1.33, ADE: 3.395, FDE: 2.68
+Epoch [3/250], Loss: 1.18, ADE: 2.488, FDE: 2.05
+Epoch [4/250], Loss: 1.11, ADE: 2.220, FDE: 1.83
+Starting testing phase
+ADE is : 24.338 px 
+ FDE is: 44.745 px 
+ Inference time: 11335.522 ms
+During Training, Test ADE: 24.34, FDE: 44.75
+Epoch [5/250], Loss: 1.06, ADE: 2.083, FDE: 1.76
+Epoch [6/250], Loss: 1.02, ADE: 1.975, FDE: 1.68
+Epoch [7/250], Loss: 0.99, ADE: 1.885, FDE: 1.61
+Epoch [8/250], Loss: 0.98, ADE: 1.844, FDE: 1.61
+Epoch [9/250], Loss: 0.96, ADE: 1.777, FDE: 1.55
+Starting testing phase
+ADE is : 15.531 px 
+ FDE is: 31.408 px 
+ Inference time: 11314.437 ms
+During Training, Test ADE: 15.53, FDE: 31.41
+Epoch [10/250], Loss: nan, ADE: nan, FDE: nan
+Epoch [11/250], Loss: nan, ADE: nan, FDE: nan
+Epoch [12/250], Loss: nan, ADE: nan, FDE: nan
+Epoch [13/250], Loss: nan, ADE: nan, FDE: nan
+Epoch [14/250], Loss: nan, ADE: nan, FDE: nan
+Starting testing phase
+ADE is : 0.000 px 
+ FDE is: 0.000 px 
+ Inference time: 10677.830 ms
+During Training, Test ADE: 0.00, FDE: 0.00
+Epoch [15/250], Loss: nan, ADE: nan, FDE: nan
+Epoch [16/250], Loss: nan, ADE: nan, FDE: nan
+Epoch [17/250], Loss: nan, ADE: nan, FDE: nan
+Epoch [18/250], Loss: nan, ADE: nan, FDE: nan

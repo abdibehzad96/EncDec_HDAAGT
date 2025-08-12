@@ -1,0 +1,30 @@
+
+Total  # of GPUs 4
+Using cuda:3 device
+ Model description: No fisheye parameters + Temperature + 4s length
+Starting at:  16-20-24
+Loading data ...
+Train size: 2830, Test size: 310, Validation size: 0
+Creating model from scratch
+The number of learnable parameter is 11617496 !
+Epoch [1/250], Loss: 37.57, ADE: 213.050, FDE: 184.40
+Epoch [2/250], Loss: 19.24, ADE: 275.798, FDE: 242.21
+Starting testing phase
+ADE is : 0.000 px 
+ FDE is: 0.000 px 
+ Inference time: 11270.811 ms
+During Training, Test ADE: 0.00, FDE: 0.00
+Epoch [3/250], Loss: 13.58, ADE: 209.753, FDE: 193.30
+Epoch [4/250], Loss: 10.31, ADE: 169.726, FDE: 154.34
+Starting testing phase
+ADE is : 9.525 px 
+ FDE is: 12.983 px 
+ Inference time: 11262.917 ms
+During Training, Test ADE: 9.52, FDE: 12.98
+Epoch [5/250], Loss: 7.96, ADE: 134.166, FDE: 128.63
+Epoch [6/250], Loss: 6.79, ADE: 124.533, FDE: 116.62
+Starting testing phase
+ADE is : 23.219 px 
+ FDE is: 31.434 px 
+ Inference time: 11264.793 ms
+During Training, Test ADE: 23.22, FDE: 31.43
